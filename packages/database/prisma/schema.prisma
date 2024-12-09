@@ -1,0 +1,182 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+
+  chatbotMembers ChatbotMember[]
+  accounts       Account[]
+  sessions       Session[]
+  teamMembers    TeamMember[]
+  activityLogs   ActivityLog[]
+  contacts       Contact[]
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model Chatbot {
+  id              String      @id @default(cuid())
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  name            String
+  defaultReply    String?
+  targetCountry   String?
+  defaultLanguage String      @default("en")
+  accountTimezone String
+  brandColor      String      @default("#016DFF")
+  developmentMode Boolean     @default(false)
+  logo            String?
+  plan            ChatbotPlan
+
+  chatbotMembers ChatbotMember[]
+  teams          Team[]
+  teamMembers    TeamMember[]
+  activityLogs   ActivityLog[]
+  contacts       Contact[]
+}
+
+model ChatbotMember {
+  id                         String            @id @default(cuid())
+  createdAt                  DateTime          @default(now())
+  updatedAt                  DateTime          @updatedAt
+  chatbotId                  String
+  userId                     String
+  role                       ChatbotMemberRole
+  isAdmin                    Boolean
+  enableAnalytics            Boolean
+  enableFlows                Boolean
+  enableContacts             Boolean
+  enableOnlyAssignedContacts Boolean
+  enableEmailAndPhone        Boolean
+  enableBroadcast            Boolean
+  enableEcommerce            Boolean
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chatbot Chatbot @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  chatbotId String
+  name      String
+
+  chatbot Chatbot @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+
+  teamMembers TeamMember[]
+  contacts    Contact[]
+}
+
+model TeamMember {
+  id        String @id @default(cuid())
+  chatbotId String
+  teamId    String
+  userId    String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team    Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  chatbot Chatbot @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  chatbotId String
+  userId    String
+  data      String
+  action    String
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chatbot Chatbot @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+}
+
+model Contact {
+  id          String    @id @default(cuid())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  avatar      String?
+  chatbotId   String
+  phoneNumber String?
+  email       String?
+  firstName   String?
+  lastName    String?
+  gender      String?
+  source      String
+  userId      String?
+  teamId      String?
+  lastSeenAt  DateTime?
+
+  user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team    Team?   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  chatbot Chatbot @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+}
+
+enum ChatbotPlan {
+  Free
+  Pro
+}
+
+enum ChatbotMemberRole {
+  Owner
+  Agent
+}

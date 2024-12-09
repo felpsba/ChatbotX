@@ -1,0 +1,7 @@
+{
+    "extends": "@ahachat.ai/typescript-config/base.json",
+    "include": [
+        "src/**/*.ts",
+        "scripts/**/*.ts"
+    ]
+}

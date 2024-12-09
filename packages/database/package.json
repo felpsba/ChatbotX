@@ -1,0 +1,19 @@
+{
+  "name": "@ahachat.ai/database",
+  "version": "0.1.0",
+  "dependencies": {
+    "@prisma/client": "5.22.0"
+  },
+  "devDependencies": {
+    "prisma": "5.22.0",
+    "@ahachat.ai/typescript-config": "workspace:*"
+  },
+  "scripts": {
+    "db:generate": "prisma migrate dev --create-only",
+    "db:migrate": "prisma db push --skip-generate",
+    "db:studio": "prisma studio"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}
