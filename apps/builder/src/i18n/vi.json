@@ -1,3 +1,11 @@
 {
-  "Analytics": "Phân tích"
+  "common.analytics": "Phân tích",
+  "common.automated_responses": "Phản hồi tự động",
+  "common.broadcasts": "Phát sóng",
+  "common.contacts": "Danh bạ",
+  "common.flows": "Luồng",
+  "common.inbox": "Hộp thư đến",
+  "common.language": "Ngôn ngữ",
+  "common.settings": "Cài đặt",
+  "common.tools": "Công cụ"
 }

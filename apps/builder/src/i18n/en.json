@@ -1,1 +1,11 @@
-{}
+{
+  "common.analytics": "Analytics",
+  "common.automated_responses": "Automated Responses",
+  "common.broadcasts": "Broadcasts",
+  "common.contacts": "Contacts",
+  "common.flows": "Flows",
+  "common.inbox": "Inbox",
+  "common.language": "Language",
+  "common.settings": "Settings",
+  "common.tools": "Tools"
+}

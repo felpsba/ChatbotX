@@ -96,7 +96,7 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                {t('Language')}
+                {t('common.language')}
                 <LangSelector />
               </DropdownMenuItem>
             </DropdownMenuGroup>
