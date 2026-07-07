@@ -1,5 +1,6 @@
 import {
   broadcastToWorkspaceParty,
+  conversationService,
   contactInboxService,
   fbCommentAutomationService,
   workspaceService,
@@ -229,6 +230,7 @@ async function executePrivateReply(
     channelType: "messenger" | "instagram"
     conversationId: string
     contactInboxId: string
+    workspaceId: string
     delay: number
   },
 ) {
@@ -236,13 +238,38 @@ async function executePrivateReply(
     return
   }
 
+  // For Instagram, find/create DM conversation instead of using comment conversation
+  let targetConversationId = ctx.conversationId
+  if (ctx.channelType === "instagram") {
+    const contactInbox = await contactInboxService.findBy({ where: { id: ctx.contactInboxId } })
+    if (contactInbox) {
+      const dmConversation = await conversationService.findOrCreate({
+        workspaceId: ctx.workspaceId,
+        contactId: contactInbox.contactId,
+        sourceId: null,
+      })
+      targetConversationId = dmConversation.id
+    }
+  }
+
   if (privateReply.type === "text" && privateReply.value) {
     if (ctx.channelType === "messenger") {
       await sendPrivateReply(ctx.auth, ctx.commentId, privateReply.value).catch(
         (_e) => undefined,
       )
+    } else if (ctx.channelType === "instagram") {
+      await chatQueue.add(
+        ChatJobAction.sendChatMessage,
+        {
+          type: ChatJobAction.sendChatMessage,
+          data: {
+            conversation: { id: targetConversationId, workspaceId: ctx.workspaceId },
+            text: privateReply.value,
+          },
+        },
+        { delay: ctx.delay },
+      )
     }
-    // Instagram private DM text reply: out of scope MVP (no private_replies API)
     return
   }
 
@@ -252,7 +279,7 @@ async function executePrivateReply(
       {
         type: IntegrationJobAction.sendFlow,
         data: {
-          conversationId: ctx.conversationId,
+          conversationId: targetConversationId,
           contactInboxId: ctx.contactInboxId,
           flowId: privateReply.value,
         },
@@ -268,7 +295,7 @@ async function executePrivateReply(
       {
         type: IntegrationJobAction.sendFlow,
         data: {
-          conversationId: ctx.conversationId,
+          conversationId: targetConversationId,
           contactInboxId: ctx.contactInboxId,
         },
       },
@@ -520,6 +547,7 @@ export async function processCommentAutomation(
         channelType,
         conversationId,
         contactInboxId,
+        workspaceId,
         delay,
       }).catch((err) =>
         logger.error(
